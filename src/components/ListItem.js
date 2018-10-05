@@ -1,17 +1,74 @@
 import React, { Component } from 'react';
-import { Text } from 'react-native';
+import { 
+    Text, 
+    TouchableWithoutFeedback, 
+    View, 
+    StyleSheet, 
+    LayoutAnimation,
+    NativeModules 
+} from 'react-native';
+import { connect } from 'react-redux';
 import { CardSection, Card } from './common';
+import * as actions from '../actions';
+const { UIManager } = NativeModules
+UIManager.setLayoutAnimationEnabledExperimental
+    && UIManager.setLayoutAnimationEnabledExperimental(true);
 
 class ListItem extends Component {
+    componentWillUpdate() {
+        LayoutAnimation.spring();
+    }
+
+    renderDescription() {
+        const { library, expanded } = this.props;
+
+        if (expanded){
+            return (
+                <CardSection>
+                    <Text style={{ flex:1 }}>
+                        {library.item.description}
+                    </Text>
+                </CardSection>
+            );
+        }
+    }
+
     render() {
+        const { titleStyle } = styles;
+        const { id, title } = this.props.library.item;
+
         return (
-            <CardSection>
-                <Text>
-                    {this.props.library.item.title}
-                </Text>
-            </CardSection>
+            <TouchableWithoutFeedback
+                onPress={() => this.props.selectLibrary(id)}
+            >
+                <View>
+                    <CardSection>
+                        <Text style={titleStyle}>
+                            {title}
+                        </Text>
+                    </CardSection>
+                    {this.renderDescription()}
+                </View>
+            </TouchableWithoutFeedback>
         );
     }
 }
 
-export default ListItem;
+const styles = {
+    titleStyle: {
+      fontSize: 20,
+      paddingLeft: 15
+    },
+    descriptionStyle: {
+      paddingLeft: 10,
+      paddingRight: 10
+    }
+  };
+  
+const mapStateToProps = (state, ownProps) => {
+    const expanded = state.selectedLibraryId === ownProps.library.item.id;
+
+    return { expanded };
+};
+
+export default connect(mapStateToProps, actions)(ListItem);
